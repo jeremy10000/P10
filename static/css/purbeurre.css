@@ -1,0 +1,72 @@
+/* 
+ *	Purbeurre CSS (P8)
+ */
+
+.header-purbeurre {
+	height: 200px;
+	width: 100%;
+	background: linear-gradient(to bottom, rgba(92, 77, 66, 0.8) 0%, rgba(92, 77, 66, 0.8) 100%), url("../img/bg-masthead.jpg");
+	background-size: cover;
+ }
+
+.header-purbeurre-product {
+	height: 200px;
+	width: 100%;
+ }
+
+/*
+ *	Nutriscore and level
+ *	URL :	detail/  
+ *			search/
+ *			proposition/
+ */
+
+.high { background-color: #ce2102; }
+.high::after{content: " en quantité élevée";}
+
+.low { background-color: #9bef38; }
+.low::after{content: " en faible quantité";}
+
+.moderate { background-color: #f2cb30; }
+.moderate::after{content: " en quantité modérée";}
+
+.nutriscore-a { background-color: #498047; }
+.nutriscore-b { background-color: #95b940; }
+.nutriscore-c { background-color: #f1ca30; }
+.nutriscore-d { background-color: #d5801e; }
+.nutriscore-e { background-color: #c7411c; }
+
+/*
+ *	Product (bootstrap card) 
+ *	URL :	search/  
+ *			proposition/
+ */
+
+.product-card {
+ 	width: 300px;
+ 	min-height: 300px;
+ }
+
+.product-image-size {
+	width: 100%;
+	height: 150px;
+}
+
+.product-nutriscore {
+	width: 50px; 
+	height: 50px; 
+	line-height: 50px; 
+	top: 2px;
+	left: calc(100% - 52px);
+}
+
+.product-image-size-max {
+	max-width: 100%;
+    max-height: 100%;
+}
+
+.product-title {
+	min-height: 90px;
+}
+
+footer { display: none; }

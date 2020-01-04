@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+- Mon compte
+{% endblock title %}
+
+{% block content %}
+
+<!-- Header  -->
+{% include "include_header_profile.html" %}
+
+<section class="container mt-5 mb-5">
+    <div class="row align-items-center justify-content-center text-center">
+        <div class="col-lg-6 col-md-10 col-sm-12 align-self-center">
+            <div class="card">
+                <h5 class="card-header bg-dark text-white">Mon profil</h5>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="form-group text-left">
+                            <label for="mail_username">Adresse mail :</label>
+                            <input type="email" class="form-control" placeholder="{{ user.email }}" disabled>
+                        </div>
+                        <div class="form-group text-left">
+                            <label for="password_username">Mot de passe :</label>
+                            <input type="password" class="form-control" placeholder="*******" disabled>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-dark disabled" disabled>
+                            Modifier
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock content %}
