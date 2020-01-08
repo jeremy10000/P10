@@ -9,6 +9,8 @@ from django.urls import reverse_lazy
 from login.models import User
 from .models import Product, Substitute
 
+from sentry_sdk import push_scope, capture_exception, capture_message
+
 
 class Search(ListView):
     """ Search for Products. """
@@ -26,6 +28,12 @@ class Search(ListView):
 
     def get_queryset(self):
         query = self.request.GET.get("query")
+
+        with push_scope() as scope:
+            if self.request.user.is_authenticated:
+                scope.level = "info"
+                scope.user = {"email": self.request.user}
+                capture_message("Nouvelle recherche :", query)
 
         return Product.objects.filter(
             name__icontains=query).order_by('name')
