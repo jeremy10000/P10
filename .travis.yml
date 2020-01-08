@@ -5,12 +5,10 @@ python:
 before_script:
   - pip install -r requirements.txt
 
-env: DJANGO_SETTINGS_MODULE="purbeurre.settings"
+env: DJANGO_SETTINGS_MODULE="purbeurre.settings.travis"
 
 services:
   - postgresql
 
 script:
-  - ./manage.py makemigrations
-  - ./manage.py migrate
   - ./manage.py test
