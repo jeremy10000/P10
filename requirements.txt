@@ -12,3 +12,4 @@ urllib3==1.25.7
 whitenoise==4.1.4
 sentry-sdk==0.14.0
 raven==6.10.0
+newrelic==5.4.1.134
