@@ -33,7 +33,7 @@ class Search(ListView):
             if self.request.user.is_authenticated:
                 scope.level = "info"
                 scope.user = {"email": self.request.user}
-                capture_message("Nouvelle recherche :", query)
+                capture_message("Nouvelle recherche")
 
         return Product.objects.filter(
             name__icontains=query).order_by('name')
