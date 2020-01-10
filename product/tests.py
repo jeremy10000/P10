@@ -1,3 +1,5 @@
+from decimal import *
+
 from django.test import TestCase, Client, TransactionTestCase
 from django.db import IntegrityError
 from django.urls import reverse
@@ -341,6 +343,36 @@ class ProductTest(TestCase):
 class CmdTest(TransactionTestCase):
     """ test BaseCommand """
 
+    def setUp(self):
+        data = Level(name="high")
+        data.save()
+        data = Level(name="moderate")
+        data.save()
+        data = Level(name="low")
+        data.save()
+
+        data = Category(name="Boissons")
+        data.save()
+
+        data = Product(
+            name="Thé au jasmin",
+            url="https://the-jasmin.fr",
+            nutriscore="a",
+            category_id=Category.objects.get(name="Boissons"),
+            photo="https://the-jasmin.fr/photo.jpg",
+            salt_100g=1.00,
+            sugars_100g=2.10,
+            fat_100g=3.78,
+            saturate_fat_100g=11.22,
+            level_salt=Level.objects.get(name="low"),
+            level_sugars=Level.objects.get(name="low"),
+            level_saturate_fat=Level.objects.get(name="high"),
+            level_fat=Level.objects.get(name="high"),
+            code="10012020",
+            last_modified_t="1568887200"
+        )
+        data.save()
+
     @patch("product.management.commands.add-level.STDOUT", new_callable=bool)
     def test_add_level_errors(self, mock):
         mock = False
@@ -355,13 +387,13 @@ class CmdTest(TransactionTestCase):
     def test_add_level_success_and_integrity_error(self, mock):
         mock = False
 
-        self.assertEqual(Level.objects.all().count(), 0)
+        self.assertEqual(Level.objects.all().count(), 3)
 
         call_command("add-level", level="Very Low")
-        self.assertEqual(Level.objects.all().count(), 1)
+        self.assertEqual(Level.objects.all().count(), 4)
 
         call_command("add-level", level="Very Low")
-        self.assertEqual(Level.objects.all().count(), 1)
+        self.assertEqual(Level.objects.all().count(), 4)
 
     @patch("product.management.commands.add-product.STDOUT", new_callable=bool)
     def test_add_product_errors(self, mock):
@@ -377,12 +409,6 @@ class CmdTest(TransactionTestCase):
     @patch("product.management.commands.add-product.STDOUT", new_callable=bool)
     def test_add_product_success_and_error(self, mock, mock_json):
         mock = False
-        data = Level(name="high")
-        data.save()
-        data = Level(name="moderate")
-        data.save()
-        data = Level(name="low")
-        data.save()
 
         mock_json.return_value.json.return_value = {
             'products': [{
@@ -427,69 +453,99 @@ class CmdTest(TransactionTestCase):
             }]
         }
 
-        self.assertEqual(Product.objects.all().count(), 0)
-        self.assertEqual(Category.objects.all().count(), 0)
-        call_command("add-product", nutriscore="a", category="Desserts")
-        self.assertEqual(Product.objects.all().count(), 2)
+        self.assertEqual(Product.objects.all().count(), 1)
         self.assertEqual(Category.objects.all().count(), 1)
         call_command("add-product", nutriscore="a", category="Desserts")
-        self.assertEqual(Product.objects.all().count(), 2)
-        self.assertEqual(Category.objects.all().count(), 1)
+        self.assertEqual(Product.objects.all().count(), 3)
+        self.assertEqual(Category.objects.all().count(), 2)
+        call_command("add-product", nutriscore="a", category="Desserts")
+        self.assertEqual(Product.objects.all().count(), 3)
+        self.assertEqual(Category.objects.all().count(), 2)
 
     @patch("product.management.commands.update-db.requests.get")
     @patch("product.management.commands.update-db.STDOUT", new_callable=bool)
-    def test_update(self, mock_stdout, mock_json):
+    def test_update_sucess(self, mock_stdout, mock_json):
         mock_stdout = False
-        db_init()
 
-        self.assertEqual(Product.objects.all().count(), 3)
+        self.assertEqual(Product.objects.all().count(), 1)
+
         mock_json.return_value.json.return_value = {
             'product': {
                 'nutrient_levels': {
-                    'sugars': 'High',
-                    'salt': 'High',
-                    'fat': 'High',
-                    'saturated-fat': 'High',
+                    'sugars': 'moderate',
+                    'salt': 'moderate',
+                    'fat': 'moderate',
+                    'saturated-fat': 'moderate',
                 },
                 'nutriments': {
-                    'salt_100g': '1.45',
-                    'sugars_100g': '1.09',
-                    'fat_100g': '22.15',
-                    'saturated-fat_100g': '10.2',
+                    'salt_100g': 1.45,
+                    'sugars_100g': 1.09,
+                    'fat_100g': 22.15,
+                    'saturated-fat_100g': 10.22,
                 },
                 'image_url': 'https://image.fr',
-                'nutrition_grade_fr': ['e'],
+                'nutrition_grade_fr': ['b'],
                 'url': 'https://url.fr',
-                'code': '900800800',
-                'last_modified_t': "1568894400",
-                'product_name_fr': 'Mayo Mock', }
+                'code': '10012020',
+                'last_modified_t': "1568887300",
+                'product_name_fr': 'Thé Mock', }
         }
         mock = mock_json.return_value.json \
                         .return_value["product"]["last_modified_t"]
-        update = False
 
-        # Update : NO
-        product_original = Product.objects.get(code="102202302")
-        self.assertEqual(product_original.name, "Ketchup")
-        self.assertEqual(product_original.last_modified_t, "1768894400")
-        if product_original.last_modified_t < mock:
-            update = True
-        self.assertFalse(update)
-
-        # Update : YES
-        product_original = Product.objects.get(code="100200300")
-        self.assertEqual(product_original.last_modified_t, "1568887200")
-        self.assertEqual(product_original.name, "Mayonnaise")
-        if product_original.last_modified_t < mock:
-            update = True
-        self.assertTrue(update)
+        product = Product.objects.get(code="10012020")
+        self.assertEqual(product.name, "Thé au jasmin")
 
         call_command("update-db")
-        product_original = Product.objects.get(code="100200300")
-        self.assertEqual(product_original.last_modified_t, "1568894400")
-        self.assertEqual(product_original.name, "Mayo Mock")
+
+        product = Product.objects.get(code="10012020")
+        self.assertEqual(product.name, "Thé Mock")
+        self.assertEqual(product.last_modified_t, "1568887300")
+        self.assertEqual(product.salt_100g, Decimal('1.45'))
+        self.assertEqual(product.sugars_100g, Decimal('1.09'))
+        self.assertEqual(product.fat_100g, Decimal('22.15'))
+        self.assertEqual(product.saturate_fat_100g, Decimal('10.22'))
+        self.assertEqual(product.url, "https://url.fr")
+        self.assertEqual(product.photo, "https://image.fr")
+        self.assertEqual(str(product.level_sugars), "moderate")
+        self.assertEqual(str(product.level_salt), "moderate")
+        self.assertEqual(str(product.level_saturate_fat), "moderate")
+        self.assertEqual(str(product.level_fat), "moderate")
+        self.assertEqual(product.nutriscore, "b")
+
+    @patch("product.management.commands.update-db.requests.get")
+    @patch("product.management.commands.update-db.STDOUT", new_callable=bool)
+    def test_update_error(self, mock_stdout, mock_json):
+        mock_stdout = False
+
+        self.assertEqual(Product.objects.all().count(), 1)
+
+        mock_json.return_value.json.return_value = {
+            'product': {
+                'nutrient_levels': {
+                    'sugars': 'moderate',
+                    'salt': 'moderate',
+                    'fat': 'moderate',
+                    'saturated-fat': 'moderate',
+                },
+                # KeyError
+                'nutriments': {},
+                'image_url': 'https://image.fr',
+                'nutrition_grade_fr': ['b'],
+                'url': 'https://url.fr',
+                'code': '10012020',
+                'last_modified_t': "1568887300",
+                'product_name_fr': 'Thé Mock', }
+        }
+        mock = mock_json.return_value.json \
+                        .return_value["product"]["last_modified_t"]
+
+        product = Product.objects.get(code="10012020")
+        self.assertEqual(product.name, "Thé au jasmin")
+        self.assertEqual(product.last_modified_t, "1568887200")
 
         call_command("update-db")
-        product_original = Product.objects.get(code="102202302")
-        self.assertEqual(product_original.name, "Ketchup")
-        self.assertEqual(product_original.last_modified_t, "1768894400")
+
+        product = Product.objects.get(code="10012020")
+        self.assertEqual(product.name, "Thé au jasmin")
+        self.assertEqual(product.last_modified_t, "1568887200")
