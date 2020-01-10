@@ -50,7 +50,7 @@ class Product(models.Model):
     )
 
     nutriscore = models.CharField(max_length=1, verbose_name="Nutriscore")
-    url = models.URLField(unique=True, verbose_name="URL")
+    url = models.URLField(verbose_name="URL")
     photo = models.URLField(verbose_name="Photo")
 
     fat_100g = models.DecimalField(
@@ -93,6 +93,16 @@ class Product(models.Model):
         Level,
         related_name='levelFat',
         on_delete=models.CASCADE
+    )
+
+    code = models.CharField(
+        max_length=50,
+        unique=True,
+        verbose_name="Code produit"
+    )
+    last_modified_t = models.CharField(
+        max_length=50,
+        verbose_name="Dernière modification"
     )
 
     def __str__(self):

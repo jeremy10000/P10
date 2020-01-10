@@ -35,6 +35,8 @@ def db_init():
         level_sugars=Level.objects.get(name="High"),
         level_saturate_fat=Level.objects.get(name="High"),
         level_fat=Level.objects.get(name="High"),
+        code="100200300",
+        last_modified_t="1568887200"
     )
     data.save()
 
@@ -52,6 +54,8 @@ def db_init():
         level_sugars=Level.objects.get(name="High"),
         level_saturate_fat=Level.objects.get(name="High"),
         level_fat=Level.objects.get(name="High"),
+        code="101201301",
+        last_modified_t="10120130111"
     )
     data.save()
 
@@ -69,6 +73,8 @@ def db_init():
         level_sugars=Level.objects.get(name="High"),
         level_saturate_fat=Level.objects.get(name="High"),
         level_fat=Level.objects.get(name="High"),
+        code="102202302",
+        last_modified_t="1768894400"
     )
     data.save()
 
@@ -124,13 +130,13 @@ class ProductTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_proposition_better_nutriscore_or_equivalent_and_exclude_id(self):
-        response = self.client.get('/product/proposition/1')
+        r = self.client.get('/product/proposition/1')
 
-        self.assertEqual(response.context_data["object_list"].count(), 2)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(r.context_data["object_list"].count(), 2)
+        self.assertEqual(r.status_code, 200)
 
         # id=1 because self.client.get('/product/proposition/1')
-        if not Product.objects.get(id=1) in response.context_data["object_list"]:
+        if not Product.objects.get(id=1) in r.context_data["object_list"]:
             exclude_id = True
 
         self.assertTrue(exclude_id)
@@ -395,6 +401,8 @@ class CmdTest(TransactionTestCase):
                 'image_url': 'https://image.fr',
                 'nutrition_grade_fr': ['a'],
                 'url': 'https://url.fr',
+                'code': '900800800',
+                'last_modified_t': '10120130222',
                 'product_name_fr': 'Nom du Produit Mock', },
 
                 {
@@ -414,6 +422,8 @@ class CmdTest(TransactionTestCase):
                 'nutrition_grade_fr': ['a'],
                 'url': 'https://url2.fr',
                 'product_name_fr': 'Nom du Produit Mock 2',
+                'code': '900900800',
+                'last_modified_t': '1012013012',
             }]
         }
 
@@ -425,3 +435,61 @@ class CmdTest(TransactionTestCase):
         call_command("add-product", nutriscore="a", category="Desserts")
         self.assertEqual(Product.objects.all().count(), 2)
         self.assertEqual(Category.objects.all().count(), 1)
+
+    @patch("product.management.commands.update-db.requests.get")
+    @patch("product.management.commands.update-db.STDOUT", new_callable=bool)
+    def test_update(self, mock_stdout, mock_json):
+        mock_stdout = False
+        db_init()
+
+        self.assertEqual(Product.objects.all().count(), 3)
+        mock_json.return_value.json.return_value = {
+            'product': {
+                'nutrient_levels': {
+                    'sugars': 'High',
+                    'salt': 'High',
+                    'fat': 'High',
+                    'saturated-fat': 'High',
+                },
+                'nutriments': {
+                    'salt_100g': '1.45',
+                    'sugars_100g': '1.09',
+                    'fat_100g': '22.15',
+                    'saturated-fat_100g': '10.2',
+                },
+                'image_url': 'https://image.fr',
+                'nutrition_grade_fr': ['e'],
+                'url': 'https://url.fr',
+                'code': '900800800',
+                'last_modified_t': "1568894400",
+                'product_name_fr': 'Mayo Mock', }
+        }
+        mock = mock_json.return_value.json \
+                        .return_value["product"]["last_modified_t"]
+        update = False
+
+        # Update : NO
+        product_original = Product.objects.get(code="102202302")
+        self.assertEqual(product_original.name, "Ketchup")
+        self.assertEqual(product_original.last_modified_t, "1768894400")
+        if product_original.last_modified_t < mock:
+            update = True
+        self.assertFalse(update)
+
+        # Update : YES
+        product_original = Product.objects.get(code="100200300")
+        self.assertEqual(product_original.last_modified_t, "1568887200")
+        self.assertEqual(product_original.name, "Mayonnaise")
+        if product_original.last_modified_t < mock:
+            update = True
+        self.assertTrue(update)
+
+        call_command("update-db")
+        product_original = Product.objects.get(code="100200300")
+        self.assertEqual(product_original.last_modified_t, "1568894400")
+        self.assertEqual(product_original.name, "Mayo Mock")
+
+        call_command("update-db")
+        product_original = Product.objects.get(code="102202302")
+        self.assertEqual(product_original.name, "Ketchup")
+        self.assertEqual(product_original.last_modified_t, "1768894400")

@@ -70,7 +70,7 @@ class Command(BaseCommand):
             "https://fr.openfoodfacts.org/cgi/search.pl?"
             "search_terms={}&search_tag=categories"
             "&sort_by=unique_scans_n&nutrition_grades={}"
-            "&page_size=10&json=1".format(self.category, self.nutriscore))
+            "&page_size=40&json=1".format(self.category, self.nutriscore))
 
         results = product_request.json()["products"]
 
@@ -105,6 +105,10 @@ class Command(BaseCommand):
             self.required["level_salt"] = level.get("salt", "")
             self.required["level_saturated"] = level.get("saturated-fat", "")
             self.required["level_fat"] = level.get("fat", "")
+
+            self.required["code"] = product.get("code", "")
+            self.required["last_modified_t"] = product \
+                .get("last_modified_t", "")
 
             self.check_data(self.required)
 
@@ -145,6 +149,8 @@ class Command(BaseCommand):
                 level_saturate_fat=Level.objects.get(
                     name=product["level_saturated"]),
                 level_fat=Level.objects.get(name=product["level_fat"]),
+                code=product["code"],
+                last_modified_t=product["last_modified_t"],
             )
             data.save()
             if STDOUT:
