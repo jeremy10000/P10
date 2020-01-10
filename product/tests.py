@@ -74,7 +74,7 @@ def db_init():
         level_saturate_fat=Level.objects.get(name="High"),
         level_fat=Level.objects.get(name="High"),
         code="102202302",
-        last_modified_t="10120130222"
+        last_modified_t="1768894400"
     )
     data.save()
 
