@@ -20,15 +20,21 @@ class Command(BaseCommand):
         """ usage : ./manage.py update-db """
         if STDOUT:
             self.stdout.write(self.style.SUCCESS(
-                'Recherche des mises à jour...')
+                'Check for updates...')
             )
 
         counter = 0
 
         for p in Product.objects.all():
-            r = requests.get(
-                "https://fr.openfoodfacts.org/api/v0/product/"
-                "{}.json".format(p.code)).json()["product"]
+            try:
+                r = requests.get(
+                    "https://fr.openfoodfacts.org/api/v0/product/"
+                    "{}.json".format(p.code), timeout=5.0).json()["product"]
+            except requests.exceptions.RequestException as e:
+                if STDOUT:
+                    self.stdout.write(self.style.SUCCESS(
+                        'Exception : "%s", %s' % (p.code, e))
+                    )
 
             if int(p.last_modified_t) < int(r.get("last_modified_t", 0)):
                 try:
