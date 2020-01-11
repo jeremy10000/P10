@@ -29,8 +29,7 @@ class Command(BaseCommand):
             try:
                 r = requests.get(
                     "https://fr.openfoodfacts.org/api/v0/product/"
-                    "{}.json".format(p.code).json()["product"],
-                    timeout=5.0)
+                    "{}.json".format(p.code), timeout=5.0).json()["product"]
             except requests.exceptions.RequestException as e:
                 if STDOUT:
                     self.stdout.write(self.style.SUCCESS(
