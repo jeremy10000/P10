@@ -29,7 +29,7 @@ class Command(BaseCommand):
             try:
                 r = requests.get(
                     "https://fr.openfoodfacts.org/api/v0/product/"
-                    "{}.json".format(p.code), timeout=5.0).json()["product"]
+                    "{}.json".format(p.code), timeout=5.0, verify=False).json()["product"]
 
                 self.check_update(r, p)
 
