@@ -2,6 +2,10 @@ language: python
 python:
   - '3.6'
 
+branches:
+  only:
+    - dev
+
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
   - pip install -r requirements.txt
