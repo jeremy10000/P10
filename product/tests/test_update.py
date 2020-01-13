@@ -210,7 +210,11 @@ class CmdTest(TransactionTestCase):
     @patch("product.management.commands.update-db.requests.get")
     @patch("product.management.commands.update-db.STDOUT", new_callable=bool)
     def test_update_error(self, mock_stdout, mock_json):
-        """ Test: AttributeError and ValidationError """
+        """ Test:
+            AttributeError
+            IntegrityError
+            ValidationError
+        """
 
         mock_stdout = False
 
@@ -232,6 +236,15 @@ class CmdTest(TransactionTestCase):
         mock_json.return_value.json.side_effect = ValidationError("Error")
 
         with self.assertRaises(ValidationError):
+            call_command("update-db")
+
+        product = Product.objects.get(code="10012020")
+        self.assertEqual(product.name, "Thé au jasmin")
+        self.assertEqual(product.last_modified_t, "1000")
+
+        mock_json.return_value.json.side_effect = IntegrityError("Error")
+
+        with self.assertRaises(IntegrityError):
             call_command("update-db")
 
         product = Product.objects.get(code="10012020")
