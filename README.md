@@ -1,7 +1,6 @@
-# PurBeurre
-Créez une plateforme pour amateurs de Nutella.
+# Déployer PurBeurre sur DigitalOcean
 
-### Installation
+### Installer Purbeurre en local
 1. Virtualenv & requirements.txt
 ```
 virtualenv -p python3 env
@@ -9,7 +8,7 @@ source env/bin/activate
 pip install -r requirements.txt
 ```
 
-2. Configuration de la base de données dans le settings.py
+2. Configuration de la base de données dans le settings/__init__.py
 
 3. Faire les migrations
 ```
