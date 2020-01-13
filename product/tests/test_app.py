@@ -2,7 +2,7 @@ from django.test import TestCase, Client, TransactionTestCase
 from django.db import IntegrityError
 from django.urls import reverse
 
-from .models import Category, Level, Product, Substitute
+from product.models import Category, Level, Product, Substitute
 from login.models import User
 
 from unittest.mock import patch
