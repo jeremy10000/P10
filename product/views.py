@@ -12,19 +12,6 @@ from .models import Product, Substitute
 from sentry_sdk import push_scope, capture_exception, capture_message
 
 
-def for_sentry(message, exception=True):
-    """ For Sentry """
-    with push_scope() as scope:
-        if exception is True:
-            scope.set_tag("exception", "proposition")
-            scope.level = 'error'
-            capture_exception(Exception(message))
-        else:
-            scope.set_tag("info", "search")
-            scope.level = 'info'
-            capture_message(message)
-
-
 class Search(ListView):
     """ Search for Products. """
 
@@ -46,7 +33,10 @@ class Search(ListView):
             name__icontains=query).order_by('name')
 
         if not product:
-            for_sentry("No product.", exception=False)
+            with push_scope() as scope:
+                scope.set_tag("info", "search")
+                scope.level = 'info'
+                capture_message("No products.")
 
         return product
 
@@ -67,7 +57,10 @@ class Proposition(ListView):
             product = Product.objects.get(pk=self.kwargs['product_id'])
             return super(Proposition, self).get(request, *args, **kwargs)
         except Product.DoesNotExist as e:
-            for_sentry(e)
+            with push_scope() as scope:
+                scope.set_tag("exception", "proposition")
+                scope.level = 'error'
+                capture_exception(Exception(e))
             return redirect('index')
 
     def get_queryset(self):
