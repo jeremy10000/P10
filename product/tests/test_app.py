@@ -114,11 +114,11 @@ class ProductTest(TestCase):
 
     def test_search_product_found(self):
         response = self.client.get(self.search_url + "?query=mayo")
-        self.assertEqual(response.context_data["object_list"].count(), 1)
+        self.assertEqual(len(response.context_data["object_list"]), 1)
 
     def test_search_zero_product(self):
         response = self.client.get(self.search_url + "?query=moutarde")
-        self.assertEqual(response.context_data["object_list"].count(), 0)
+        self.assertEqual(len(response.context_data["object_list"]), 0)
 
     """
     View : Proposition
