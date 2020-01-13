@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from product.models import Product, Level
 
 import requests
@@ -63,7 +64,7 @@ class Command(BaseCommand):
                 nl = r.get("nutrient_levels")
 
                 p.name = r.get("product_name_fr")
-                p.url = r.get("url")
+                p.url = r.get("url", "https://fr.openfoodfacts.org")
                 p.nutriscore = str(r.get("nutrition_grade_fr")) \
                  .replace("'", "") \
                  .replace("[", "") \
@@ -103,5 +104,12 @@ class Command(BaseCommand):
                 if STDOUT:
                     self.stdout.write(self.style.SUCCESS(
                         'ValidationError : "%s", %s' % (p.code, e))
+                    )
+                pass
+
+            except IntegrityError as e:
+                if STDOUT:
+                    self.stdout.write(self.style.SUCCESS(
+                        'IntegrityError : "%s", %s' % (p.code, e))
                     )
                 pass
